@@ -9,13 +9,14 @@ editor: visual
 #| output-location: false
 library(tidyverse)
 ```
+
 ## Team members, etc
-List your team member(s):
+
+List your team member(s): Ana Rowley
 
 Include a link to your forked GH repository:
 
 Include a link to your .qmd file:
-
 
 ## CO2 trends from Mauna Loa
 
@@ -44,13 +45,68 @@ head(co2)
 
 Create a timeseries plot of average \[CO~2~\]. Use `as.Date()` to create a formatted date for the x-axis. Label both the y-axis and add a line to connect the points.
 
+```{r}
+#library 
+library(ggplot2)
+
+# create a date from year + month (set day = 1)
+co2$date <- as.Date(paste(co2$year, co2$month, "1", sep = "-"), format = "%Y-%m-%d") #using as.Date()
+head(co2)
+
+# make the timeseries plot
+ggplot(co2, aes(x = date, y = average)) +
+  geom_line() +
+  labs(x = "Date", y = "Average CO2 (ppm)") +
+  scale_x_date(date_labels = "%b %Y", #specifies formate "Mon Year"
+               date_breaks = "5 years") + #specifies the count of the x-axis
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
+  )
+
+```
+
 ### Q2 (1 point)
 
 What months are the \[CO~2~\] values at the maximum? Create another dataframe with these months selected and create a plot like above, but with the maximum months colored in "forestgreen".
 
+```{r}
+# find mean CO2 for each month across all years
+monthly_mean <- co2 %>%
+  group_by(month) %>%
+  summarise(mean_CO2 = mean(average, na.rm = TRUE)) %>%
+  ungroup()
+monthly_mean
+
+# find months with the max CO2 avg
+max_months <- monthly_mean %>%
+  filter(mean_CO2 == max(mean_CO2))
+max_months
+
+# create new data set with only max months
+c02_max_months <- co2 %>%
+  filter(month %in% max_months$month)
+View(c02_max_months)
+
+# plot max months using new dataset
+ggplot(c02_max_months, aes(x = date, y = average)) +
+  geom_line() +
+  geom_point(color = "forestgreen", size = 0.5) + #makes points "forestgreen"
+  labs(x = "Date", y = "Average CO2 (ppm)") +
+  scale_x_date(date_labels = "%b %Y",
+               date_breaks = "5 years") +  
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
+  )
+
+```
+
 ### Q3 (1 point)
 
 What explains the seasonal variation in \[CO~2~\]? After reading Lewandowsky et al. 2016, how might you go about separating the long term trend and the seasonal variation in \[CO~2~\]?
+
+After reading Lewandowsky et al. 2016, I would create a plot grouped by year to show monthly variation in average CO2 by year. Then, I think showing the plot from Q1 is beneficial because it shows both the general seasonal variation while highlighting the overall upwards trend.
 
 ## Global temperature
 
@@ -72,9 +128,10 @@ Plot the trend in global mean temperature over time. Describe what you see and h
 
 ### Q7 (1 point)
 
-Consider the "pause" analyzed in Lewandowsky et al. 2016. Do you see evidence for such a pause? 
+Consider the "pause" analyzed in Lewandowsky et al. 2016. Do you see evidence for such a pause?
 
 ### Bonus 1 (1 point)
+
 Recreate the analysis from Lewandowsky's Fig. 1.
 
 ## Long term records of CO2
@@ -98,4 +155,5 @@ Transform the data as needed to create a plot in chronological order. Add at lea
 Join your data with the Mauna Loa data and plot together, considering different colors for the different datasets.
 
 ### Bonus 2 (1 point)
+
 Write a catchy title and short description in the style of a NYtimes infographic, contrasting the rate of anthropogenic vs. background climate change for a general public audience.
