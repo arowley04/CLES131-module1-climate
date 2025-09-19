@@ -50,16 +50,20 @@ Create a timeseries plot of average \[CO~2~\]. Use `as.Date()` to create a forma
 library(ggplot2)
 
 # create a date from year + month (set day = 1)
-co2$date <- as.Date(paste(co2$year, co2$month, "1", sep = "-"), format = "%Y-%m-%d") #using as.Date()
+co2$date <- as.Date(paste(co2$year, 
+                          co2$month, "1", 
+                          sep = "-"), format = "%Y-%m-%d") #using as.Date()
 head(co2)
 
 # make the timeseries plot
-ggplot(co2, aes(x = date, y = average)) +
+ggplot(co2, aes(x = date, 
+                y = average)) +
   geom_line() +
-  labs(x = "Date", y = "Average CO2 (ppm)") +
+  labs(x = "Date", 
+       y = "Average CO2 (ppm)") +
   scale_x_date(date_labels = "%b %Y", #specifies formate "Mon Year"
                date_breaks = "5 years") + #specifies the count of the x-axis
-  theme_bw() +
+  theme_classic() +
   theme(
     axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
   )
@@ -74,7 +78,8 @@ What months are the \[CO~2~\] values at the maximum? Create another dataframe wi
 # find mean CO2 for each month across all years
 monthly_mean <- co2 %>%
   group_by(month) %>%
-  summarise(mean_CO2 = mean(average, na.rm = TRUE)) %>%
+  summarise(mean_CO2 = mean(average, 
+                            na.rm = TRUE)) %>%
   ungroup()
 monthly_mean
 
@@ -89,16 +94,18 @@ c02_max_months <- co2 %>%
 View(c02_max_months)
 
 # plot max months using new dataset
-ggplot(c02_max_months, aes(x = date, y = average)) +
+ggplot(c02_max_months, aes(x = date, 
+                           y = average)) +
   geom_line() +
-  geom_point(color = "forestgreen", size = 0.5) + #makes points "forestgreen"
+  geom_point(color = "forestgreen", 
+             size = 1) + #makes points "forestgreen"
   labs(x = "Date", y = "Average CO2 (ppm)") +
   scale_x_date(date_labels = "%b %Y",
                date_breaks = "5 years") +  
-  theme_bw() +
+  theme_classic(base_size = 14) +
   theme(
-    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
-  )
+    axis.text.x = element_text(angle = 45, 
+                               vjust = 1, hjust = 1))
 
 ```
 
@@ -118,17 +125,62 @@ Read some [background](https://data.giss.nasa.gov/gistemp/history/background.htm
 
 How are the measurements made? Describe each column in the dataset and its units. What are the resolution of the data?
 
+The measurements 
+
+Year - The calendar year for each record. Each year corresponds to the global temperature anomaly data.
+
+No_Smoothing - The annual global surface temperature anomaly, in hundredths of degrees Celsius, relative to the NASA-GISS baseline period 1951–1980.
+
+Lowess(5) - a smoothed version of the annual anomaly, using a 5-year LOWESS (locally weighted scatterplot smoothing) to filter out short-term variability (e.g. El Niño/La Niña) and highlight long-term trends. The units are the same as No_Smoothing: hundredths of degrees Celsius relative to the 1951–1980 baseline.
+
 ### Q5 (1 point)
 
 Construct code to import dataset in a format that can be used for transforming and visualization.
+
+```{r}
+#| warning: false
+#| output: false
+library(readr)
+
+temp_index <- read_table(
+  "https://data.giss.nasa.gov/gistemp/graphs/graph_data/Global_Mean_Estimates_based_on_Land_and_Ocean_Data/graph.txt",
+  comment = "#",
+  col_names = c("Year", "No_Smoothing", "Lowess(5)"),
+  col_types = cols(
+    Year = col_integer(),
+    No_Smoothing = col_double(),
+    `Lowess(5)` = col_double()
+  )
+)
+
+temp_index <- temp_index |> 
+  drop_na()
+
+View(temp_index)
+```
 
 ### Q6 (1 point)
 
 Plot the trend in global mean temperature over time. Describe what you see and how you interpret the patterns you observe.
 
+```{r}
+ggplot(temp_index, aes(x = Year, y = No_Smoothing)) +
+  geom_line(color = "grey",
+            fill = "white") +
+  geom_point(color = "grey", size = 2) +
+  labs(x = "Year", y = "Temperature Anomaly (°C)") +
+  scale_x_continuous(breaks = seq(1880, 2020, 20)) +
+  theme_bw(base_size = 14)
+```
+
+The global mean temperature overtime plot shows an expected trend of yearly fluctuations around the annual global surface temperature anomally. However, there is an overall upwards trend. This suggests that the annual global surface temperature anomaly is increasing -> the Earth is warming. 
+
+
 ### Q7 (1 point)
 
 Consider the "pause" analyzed in Lewandowsky et al. 2016. Do you see evidence for such a pause?
+
+If you only look at the raw annual values on the plot, you might think there is a “pause” around 1880–1960. But, as we can see with the smoothed data or using statistical analysis as performed by Lewandowsky et al., there is no real pause. It is just short-term variability within a strong long-term warming trend.
 
 ### Bonus 1 (1 point)
 
@@ -157,3 +209,11 @@ Join your data with the Mauna Loa data and plot together, considering different 
 ### Bonus 2 (1 point)
 
 Write a catchy title and short description in the style of a NYtimes infographic, contrasting the rate of anthropogenic vs. background climate change for a general public audience.
+
+cd CLES131
+pwd
+git clone git@github.com:arowley04/CLES131-module1-climate.git
+git status
+git add module1.qmd
+git commit -m "Finished Q4-7" 
+git push
