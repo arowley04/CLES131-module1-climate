@@ -1,7 +1,7 @@
 # Module 1: Climate
 
 ## Team members and contributions
-To be updated
+Ana Rowley - I did all of the questions lol 
 
 ## Learning objectives
 
